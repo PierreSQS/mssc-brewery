@@ -9,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -18,8 +19,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -63,12 +63,40 @@ public class BeerControllerTest {
     @Test
     public void handlePost() throws Exception {
         // Given
-        given(beerServMock.saveNewBeer(any())).willReturn(beerDtoMock);
+        BeerDto beerDtoToSave = beerDtoMock;
+        beerDtoToSave.setId(null);
+        BeerDto savedBeerDto =  BeerDto.builder()
+                .id(UUID.randomUUID())
+                .beerName("New Beer")
+                .beerStyle("Blonde")
+                .build();
+        given(beerServMock.saveNewBeer(any())).willReturn(savedBeerDto);
 
         // When, Then
         mockMvc.perform(post("/api/v1/beer")
-                        .content(objectMapper.writeValueAsString(beerDtoMock)))
+                        .content(objectMapper.writeValueAsString(beerDtoToSave))
+                        .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(status().isCreated())
+                .andDo(print());
+    }
+
+    @Test
+    public void handleUpdate() throws Exception {
+        // Given
+        BeerDto beerDtoUpdate = beerDtoMock;
+        BeerDto updatedBeerDto =  BeerDto.builder()
+                .id(UUID.randomUUID())
+                .beerName("Updated Beer")
+                .beerStyle("Pils")
+                .upc(123456789L)
+                .build();
+        given(beerServMock.saveNewBeer(any())).willReturn(updatedBeerDto);
+
+        // When, Then
+        mockMvc.perform(put("/api/v1/beer/{beerID}", beerDtoMock.getId())
+                        .content(objectMapper.writeValueAsString(beerDtoUpdate))
+                        .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isNoContent())
                 .andDo(print());
     }
 }
