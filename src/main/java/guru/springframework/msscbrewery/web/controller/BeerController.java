@@ -11,9 +11,11 @@ import javax.validation.Valid;
 import java.util.UUID;
 
 /**
- * Created by jt on 2019-04-20.
+ * Optimized by Pierrot on 2022-10-01.
+ * @deprecated (will be replaced by the BeerControllerV2)
  */
-@Deprecated
+
+@Deprecated()
 @RequestMapping("/api/v1/beer")
 @RestController
 public class BeerController {
@@ -25,13 +27,13 @@ public class BeerController {
     }
 
     @GetMapping({"/{beerId}"})
-    public ResponseEntity<BeerDto> getBeer(@PathVariable("beerId") UUID beerId){
+    public BeerDto getBeer(@PathVariable("beerId") UUID beerId){
 
-        return new ResponseEntity<>(beerService.getBeerById(beerId), HttpStatus.OK);
+        return beerService.getBeerById(beerId);
     }
 
     @PostMapping // POST - create new beer
-    public ResponseEntity handlePost(@Valid @RequestBody BeerDto beerDto){
+    public ResponseEntity<HttpHeaders> handlePost(@Valid @RequestBody BeerDto beerDto){
 
         BeerDto savedDto = beerService.saveNewBeer(beerDto);
 
@@ -39,15 +41,15 @@ public class BeerController {
         //todo add hostname to url
         headers.add("Location", "/api/v1/beer/" + savedDto.getId().toString());
 
-        return new ResponseEntity(headers, HttpStatus.CREATED);
+        return new ResponseEntity<>(headers, HttpStatus.CREATED);
     }
 
     @PutMapping({"/{beerId}"})
-    public ResponseEntity handleUpdate(@PathVariable("beerId") UUID beerId, @Valid @RequestBody BeerDto beerDto){
+    public ResponseEntity<Void> handleUpdate(@PathVariable("beerId") UUID beerId, @Valid @RequestBody BeerDto beerDto){
 
         beerService.updateBeer(beerId, beerDto);
 
-        return new ResponseEntity(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping({"/{beerId}"})
